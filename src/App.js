@@ -1,24 +1,61 @@
-import logo from './logo.svg';
-import './App.css';
+import { useEffect, useState } from "react";
+import "./App.css";
+import TaskCreator from "./components/TaskCreator";
+import TaskTable from "./components/TaskTable";
+import VisibilityControl from "./components/VisibilityControl";
 
 function App() {
+  const [taskItems, setTaskItems] = useState([]);
+  const [taskCompleted, setTaskCompleted] = useState(false);
+
+  function createNewTask(newTask) {
+    if (!taskItems.find((task) => task.name === newTask))
+      setTaskItems([...taskItems, { name: newTask, done: false }]);
+  }
+  function toogleTask(name) {
+    setTaskItems(
+      taskItems.map((t) => (t.name === name ? { ...t, done: !t.done } : t))
+    );
+  }
+  function deleteTask() {
+    setTaskItems(taskItems.filter((task) => !task.done));
+    setTaskCompleted(false);
+  }
+
+  useEffect(() => {
+    let data = localStorage.getItem("tasks");
+    if (data) {
+      setTaskItems(JSON.parse(data));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("tasks", JSON.stringify(taskItems));
+  }, [taskItems]);
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <main className="bg-dark vh-100 text-white" >
+      <div className="container p-4 col-md-4 offset-md-4">
+        <TaskCreator createNewTask={createNewTask} />
+        <TaskTable
+          taskItems={taskItems}
+          toogleTask={toogleTask}
+          taskComplete={false}
+        />
+        <VisibilityControl
+          isChecked={taskCompleted}
+          setTaskCompleted={(checked) => setTaskCompleted(checked)}
+          deleteTask={deleteTask}
+        />
+        {taskCompleted === true && (
+          <TaskTable
+            taskItems={taskItems}
+            toogleTask={toogleTask}
+            taskComplete={true}
+          />
+        )}
+      </div>
+    </main>
   );
 }
 
